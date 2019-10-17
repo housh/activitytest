@@ -1,6 +1,7 @@
 package com.example.activitytest.activity;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,9 +13,19 @@ import com.example.activitytest.R;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 
 public class BasicActivityA extends Activity {
-    private static final String LOG_TAG = "Basic";
+    private static final String LOG_TAG = "Basic Log";
 
     @BindView(R.id.basic_finish_a_button)
     public Button basic_finish_a_button;
@@ -45,13 +56,61 @@ public class BasicActivityA extends Activity {
         Log.i(LOG_TAG, this.getClass().getSimpleName() + " onCreate(): =====>" + anInt);
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+    }
+
+    CompositeDisposable comDisposable = new CompositeDisposable();
+
+    protected void test() {
+        Observable<String> observable = Observable
+                .create(new ObservableOnSubscribe<String>() {
+                    @Override
+                    public void subscribe(@NonNull ObservableEmitter<String> emitter) throws
+                            Exception {
+                        emitter.onNext("hello");
+                    }
+                })
+                .map(new Function<String, String>() {
+                    @Override
+                    public String apply(String s) throws Exception {
+                        return s;
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+
+        observable.subscribe(new Observer<String>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                comDisposable.add(d);
+            }
+            @Override
+            public void onNext(String s) {
+                Log.i("", s);
+            }
+            @Override
+            public void onError(Throwable e) {
+            }
+            @Override
+            public void onComplete() {
+
+            }
+        });
+    }
+
     @OnClick(R.id.basic_turn_to_b_button)
     void turnToBActivity() {
         Intent intent = new Intent();
-        Bundle bundle = new Bundle();
-        bundle.putString("ra","10293");
-        intent.putExtras(bundle);
-        intent.setClass(BasicActivityA.this, BasicActivityB.class);
+//        Bundle bundle = new Bundle();
+//        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+
+//        bundle.putString("ra","10293");
+//        intent.putExtras(bundle);
+        ComponentName componentName = new ComponentName("com.otitan.cmdiapp","com.otitan.cmdiapp.activity.LoginActivity");
+        intent.setComponent(componentName);
+//        intent.setClass(BasicActivityA.this, BasicActivityB.class);
         startActivity(intent);
     }
 

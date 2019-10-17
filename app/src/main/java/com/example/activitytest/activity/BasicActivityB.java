@@ -47,6 +47,8 @@ public class BasicActivityB extends Activity {
     void turnToAActivity() {
         //this codes will start a new BasicActivityA, so the stack will be A->B->A, and this mode can repeat again and again
         Intent intent = new Intent();
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.putExtra("cleartop",true);
         intent.setClass(BasicActivityB.this, BasicActivityA.class);
         startActivity(intent);
     }
